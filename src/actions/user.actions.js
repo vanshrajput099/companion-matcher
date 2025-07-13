@@ -56,7 +56,7 @@ export const createUser = (async ({ username, name, age, interests, password }) 
 
 export const loginUser = (async ({ username, password }) => {
     try {
-        const cookieStore = await cookies();
+        const cookieStore = cookies();
 
         if ([username, password].some((ele) => ele.trim() === "")) {
             throw new Error("All fields required");
@@ -131,9 +131,9 @@ export const getUserMatches = async () => {
 
 export const logoutUser = (async () => {
     try {
-        const id = authHelper();
+        await authHelper();
 
-        const cookieStore = await cookies();
+        const cookieStore = cookies();
 
         cookieStore.set('accessToken', '', {
             path: '/',
