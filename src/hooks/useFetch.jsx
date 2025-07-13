@@ -14,6 +14,7 @@ const useFetch = (fun) => {
             setData(res);
         } catch (error) {
             setError(error);
+            console.log(error);
             toast.error(error.message);
         } finally {
             setLoading(false);
