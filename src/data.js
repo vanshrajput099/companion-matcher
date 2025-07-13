@@ -1,0 +1,22 @@
+export const interests = [
+    "Music",
+    "Movies",
+    "Traveling",
+    "Reading",
+    "Cooking",
+    "Gaming",
+    "Fitness",
+    "Photography",
+    "Dancing",
+    "Drawing",
+    "Writing",
+    "Hiking",
+    "Cycling",
+    "Technology",
+    "Coding",
+    "Sports",
+    "Fashion",
+    "Meditation",
+    "Volunteering",
+    "Gardening"
+];
