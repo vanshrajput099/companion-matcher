@@ -4,6 +4,9 @@ A full-stack matchmaking web app built with **Next.js**, where users can sign up
 
 Some of the pre existing username that you can search without creating an account - Julia31, Rudy45, Tammy9, Alfredo24.
 
+![Companion Matcher Preview](./public/ss1.png)
+![Companion Matcher Preview](./public/ss2.png)
+
 ## ✨ Features
 
 - 🔐 **User Authentication** – Secure sign up and login flow
