@@ -1,4 +1,5 @@
 "use server";
+
 import { authHelper } from "@/lib/authHelper";
 import { apiResponse } from "@/utils/APIResponse";
 import { createAccessToken } from "@/utils/jwtToken";
@@ -6,30 +7,28 @@ import { checkEncryptedPassword, encryptPassword } from "@/utils/passwordCrypter
 import { db } from "@/utils/prisma";
 import { cookies } from 'next/headers';
 
-export const createUser = (async ({ username, name, age, interests, password }) => {
+export const createUser = async ({ username, name, age, interests, password }) => {
     try {
         if ([username, name, password].some((ele) => ele.trim() === "")) {
-            throw new Error("All fields required.");
+            return apiResponse(400, "All fields are required.", null);
         }
 
         const convertedAge = parseInt(age);
 
         if (isNaN(convertedAge)) {
-            throw new Error("Age should be a number.");
+            return apiResponse(400, "Age should be a number.", null);
         }
 
         if (!Array.isArray(interests) || interests.length === 0) {
-            throw new Error("All fields required.");
+            return apiResponse(400, "Interests are required.", null);
         }
 
         const checkUsername = await db.user.findUnique({
-            where: {
-                username
-            }
+            where: { username },
         });
 
         if (checkUsername) {
-            throw new Error("Username already exists.");
+            return apiResponse(409, "Username already exists.", null);
         }
 
         const hashedPassword = await encryptPassword(password);
@@ -40,42 +39,41 @@ export const createUser = (async ({ username, name, age, interests, password }) 
                 name,
                 password: hashedPassword,
                 age: convertedAge,
-                interests
-            }
+                interests,
+            },
         });
 
         if (!createdUser) {
-            throw new Error("Server error while creating user");
+            return apiResponse(500, "Server error while creating user.", null);
         }
 
-        return apiResponse(201, "User created successfully !!", createdUser);
+        return apiResponse(201, "User created successfully!", createdUser);
     } catch (error) {
-        throw new Error(error.message);
+        console.error("createUser error:", error);
+        return apiResponse(500, "Unexpected error occurred.", null);
     }
-});
+};
 
-export const loginUser = (async ({ username, password }) => {
+export const loginUser = async ({ username, password }) => {
     try {
         const cookieStore = cookies();
 
         if ([username, password].some((ele) => ele.trim() === "")) {
-            throw new Error("All fields required");
+            return apiResponse(400, "All fields are required.", null);
         }
 
         const checkUsername = await db.user.findUnique({
-            where: {
-                username
-            }
+            where: { username },
         });
 
         if (!checkUsername) {
-            throw new Error("User not found.");
+            return apiResponse(404, "User not found.", null);
         }
 
         const checkPassword = await checkEncryptedPassword(checkUsername.password, password);
 
         if (!checkPassword) {
-            throw new Error("Invalid credentials.");
+            return apiResponse(401, "Invalid credentials.", null);
         }
 
         const accessToken = await createAccessToken(checkUsername.id, checkUsername.username);
@@ -88,31 +86,28 @@ export const loginUser = (async ({ username, password }) => {
             sameSite: 'strict',
         });
 
-        return apiResponse(201, "User Logged-In successfully !!", checkUsername)
+        return apiResponse(200, "User logged in successfully!", checkUsername);
     } catch (error) {
-        throw new Error(error.message);
+        console.error("loginUser error:", error);
+        return apiResponse(500, "Unexpected error occurred.", null);
     }
-});
+};
 
 export const getUserMatches = async () => {
     try {
         const { id } = await authHelper();
 
         const currentUser = await db.user.findUnique({
-            where: {
-                id: parseInt(id),
-            },
+            where: { id: parseInt(id) },
         });
 
         if (!currentUser) {
-            throw new Error("User not found");
+            return apiResponse(404, "User not found.", null);
         }
 
         const allUsers = await db.user.findMany({
             where: {
-                username: {
-                    not: currentUser.username,
-                },
+                username: { not: currentUser.username },
             },
         });
 
@@ -123,16 +118,16 @@ export const getUserMatches = async () => {
             return sharedInterests.length >= 2;
         });
 
-        return apiResponse(201, "User fetched successfully !!", matches);
+        return apiResponse(200, "User matches fetched successfully!", matches);
     } catch (error) {
-        throw new Error(error.message);
+        console.error("getUserMatches error:", error);
+        return apiResponse(500, "Unexpected error occurred.", null);
     }
 };
 
-export const logoutUser = (async () => {
+export const logoutUser = async () => {
     try {
         await authHelper();
-
         const cookieStore = cookies();
 
         cookieStore.set('accessToken', '', {
@@ -140,33 +135,30 @@ export const logoutUser = (async () => {
             maxAge: 0,
         });
 
-        return apiResponse(201, "User logged-out successfully !!", null);
+        return apiResponse(200, "User logged out successfully!", null);
     } catch (error) {
-        throw new Error(error.message);
+        console.error("logoutUser error:", error);
+        return apiResponse(500, "Unexpected error occurred.", null);
     }
-});
+};
 
 export const searchUsingUsername = async (username) => {
     try {
         if (!username) {
-            throw new Error("Username is required");
+            return apiResponse(400, "Username is required.", null);
         }
 
         const currentUser = await db.user.findUnique({
-            where: {
-                username: username
-            },
+            where: { username },
         });
 
         if (!currentUser) {
-            throw new Error("User not found");
+            return apiResponse(404, "User not found.", null);
         }
 
         const allUsers = await db.user.findMany({
             where: {
-                username: {
-                    not: currentUser.username,
-                },
+                username: { not: currentUser.username },
             },
         });
 
@@ -177,8 +169,9 @@ export const searchUsingUsername = async (username) => {
             return sharedInterests.length >= 2;
         });
 
-        return apiResponse(201, "User fetched successfully !!", matches);
+        return apiResponse(200, "Matching users fetched successfully!", matches);
     } catch (error) {
-        throw new Error(error.message);
+        console.error("searchUsingUsername error:", error);
+        return apiResponse(500, "Unexpected error occurred.", null);
     }
-}
+};

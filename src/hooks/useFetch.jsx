@@ -11,15 +11,22 @@ const useFetch = (fun) => {
         try {
             setLoading(true);
             const res = await fun(...args);
-            setData(res);
+
+            if (res.status >= 400) {
+                setError(res.message);
+                toast.error(res.message);
+                return;
+            }
+
+            setData(res.data);
         } catch (error) {
-            setError(error);
+            setError(error.message);
+            toast.error("Unexpected error");
             console.log(error);
-            toast.error(error.message);
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     return { loading, data, error, fn };
 }
