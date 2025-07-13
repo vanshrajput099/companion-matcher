@@ -12,6 +12,8 @@ const useFetch = (fun) => {
             setLoading(true);
             const res = await fun(...args);
 
+            console.log(res)
+
             if (res.statusCode >= 400) {
                 toast(res.message);
                 setError(res.message);

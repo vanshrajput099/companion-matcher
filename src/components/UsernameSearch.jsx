@@ -25,6 +25,7 @@ const UsernameSearch = () => {
 
     useEffect(() => {
         if (!loading && data) {
+            toast(data.message);
             setMatches(data.data);
         }
     }, [loading, data])
@@ -38,7 +39,7 @@ const UsernameSearch = () => {
     return (
         <div>
             <form className='border border-[#2a2a2a] p-3 lg:p-5 space-y-5 rounded-xl bg-[#1a1a1a]'>
-                <h1 className='text-xl lg:text-3xl font-semibold'>Match Username</h1>
+                <h1 className='text-xl lg:text-3xl font-semibold'>Match Username (Case Sensitive) </h1>
                 <p>Some Examples - Julia31, Rudy45, Tammy9, Alfredo24</p>
                 <Input
                     onChange={(e) => { setUsername(e.target.value) }}
